@@ -4,10 +4,13 @@
 .lein-failures
 .lein-plugins
 .lein-repl-history
+.nrepl-port
 /checkouts
 /classes
 /lib
 /target
 /tmp
+conf.clj
+conf.yml
 pom.xml
 pom.xml.asc

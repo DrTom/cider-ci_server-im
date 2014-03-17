@@ -1,0 +1,11 @@
+persistence:
+  db: 
+    adapter: "postgresql"
+    classname: "org.postgresl.Driver"
+    database: "cider_ci_production"
+    host: "localhost" 
+    password: "polyglot-as"
+    pool: 50
+    subname: "localhost:5432"
+    subprotocol: "postgresql"
+    username: "polyglot-as" 

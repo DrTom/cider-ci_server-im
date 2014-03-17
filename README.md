@@ -1,13 +1,14 @@
-# immutant-demo
+Cider-CI Server-IM 
+==================
 
-A Clojure library designed to ... well, that part is up to you.
+Part of [Cider-CI](https://github.com/DrTom/cider-ci). 
+This component runs in the application server under the
+[Immutant](http://immutant.org/) stack.
 
-## Usage
-
-FIXME
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright (C) 2013, 2014 Dr. Thomas Schank  (DrTom@schank.ch, Thomas.Schank@algocon.ch)
+Licensed under the terms of the GNU Affero General Public License v3.
+See the "LICENSE.txt" file provided with this software.
 
-Distributed under the Eclipse Public License, the same as Clojure.
