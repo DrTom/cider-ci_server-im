@@ -162,14 +162,14 @@
         trial-id (:id trial)
         task-data (clojure.walk/keywordize-keys (json/read-str (.getValue (:data task))))
         environment-variables (conj (or (:environment_variables task-data) {})
-                                    {:ci_execution_id execution-id
-                                     :ci_task_id (:task_id trial)
-                                     :ci_trial_id trial-id})
+                                    {:cider_ci_execution_id execution-id
+                                     :cider_ci_task_id (:task_id trial)
+                                     :cider_ci_trial_id trial-id})
         data {:attachments (:attachments task-data)
               :attachments_url (attachments-url executor trial-id)
-              :ci_execution_id execution-id
-              :ci_task_id (:task_id trial)
-              :ci_trial_id trial-id
+              :execution_id execution-id
+              :task_id (:task_id trial)
+              :trial_id trial-id
               :environment_variables environment-variables
               :git_branch_name (:name branch)
               :git_commit_id (:git_commit_id branch)
