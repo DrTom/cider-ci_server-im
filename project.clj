@@ -22,7 +22,7 @@
                  [org.clojure/java.jdbc "0.3.2"]
                  [org.clojure/tools.logging "0.2.6"]
                  [org.clojure/tools.nrepl "0.2.3"]
-                 [org.immutant/immutant "1.0.2"]
+                 [org.immutant/immutant "1.1.1"]
                  [org.postgresql/postgresql "9.3-1100-jdbc4"]
                  [org.slf4j/slf4j-log4j12 "1.7.5"]
                  [ring/ring-json "0.2.0"]
