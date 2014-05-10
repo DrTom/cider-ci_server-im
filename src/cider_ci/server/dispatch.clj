@@ -198,12 +198,14 @@
         protocol (if (:server_ssl config) "https" "http")
         host (:server_host config)
         port (:server_port config) 
-        context (:ui_context config)
+        context (:ui_context (settings/server-settings))
         ]
     (str protocol "://" host  ":" port context path)))
 
 
 ;(hooke/add-hook #'gsm/submodules-for-commit #'util/logit)
 ;(hooke/add-hook #'executor-to-dispatch-to #'util/logit)
+;(hooke/add-hook #'build-dispatch-data #'util/logit)
+;(hooke/add-hook #'route-url-for-executor #'util/logit)
 
 
