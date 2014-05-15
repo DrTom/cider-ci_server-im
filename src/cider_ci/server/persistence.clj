@@ -52,6 +52,8 @@
 
 
 ;(hooke/add-hook #'clojure.java.jdbc/db-do-prepared #'util/logit)
+;(hooke/add-hook #'clojure.java.jdbc/db-query-with-resultset #'util/logit)
+
 
 
 ;(black.water.jdbc/decorate-cjj!)

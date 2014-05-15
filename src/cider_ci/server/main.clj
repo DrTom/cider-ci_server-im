@@ -5,7 +5,9 @@
 (ns cider-ci.server.main 
   (:require 
     [cider-ci.server.dispatch :as dispatch]
+    [cider-ci.server.entities.trial :as trial-entity]
     [cider-ci.server.executor.ping :as ping]
+    [cider-ci.server.executor.sync-trials :as sync-trials]
     [cider-ci.server.git :as git]
     [cider-ci.server.persistence :as persistence]
     [cider-ci.server.persistence.settings :as settings]
@@ -35,8 +37,10 @@
   (Thread/sleep 3000) ;silly way to prevent concurrent initialization of persistence/ds
   (settings/initialize)
   (git/initialize)
+  (trial-entity/initialize)
   (ping/register-and-start-service)
-  (dispatch/register-and-start-service))
-
+  (sync-trials/register-and-start-service)
+  (dispatch/register-and-start-service)
+  )
 
 ;(hooke/add-hook #'util/try-read-and-apply-config #'util/logit)

@@ -25,7 +25,7 @@
   build-dispatch-data 
   dispatch 
   dispatch-trials 
-  executor-to-dispatch-to 
+  executors-to-dispatch-to 
   route-url-for-executor
   to-be-dispatched-trials 
   )
@@ -42,7 +42,9 @@
   (loop []
     (Thread/sleep 1000)
     (when-not @done
-      (dispatch-trials)
+      (try (dispatch-trials)
+           (catch Exception e
+             (logging/error e)))
       (recur))))
 
 (defn stop []
@@ -52,24 +54,6 @@
 (defn register-and-start-service  []
   (id/daemonize "dispatcher" start stop :singleton true))
 
-
-
-; ### trial state change notification #############################################
-(defn send-trial-state-change-notification [trial-attributes]
-  (let [topic (imsg/as-topic "/topics/trial_state_change")]
-    (imsg/publish topic trial-attributes)))
-
-
-; TODO use messaging to inform tb server about the failure
-(defn persist-trial-failure [trial e]
-  (logging/warn (util/application-trace e))
-  (persistence/update! 
-    :trials 
-    {:state "failed" 
-     :error (clojure.string/join "\n" (util/application-trace e))} 
-    ["id = ?" (:id trial)])
-  (send-trial-state-change-notification {:id (:id trial) :state "failed"}))
-
 (defn dispatch [trial executor]
   (try
     (logging/debug "dispatching: " trial executor)
@@ -77,31 +61,28 @@
           protocol (if (:ssl executor) "https" "http")
           url (str protocol "://" (:host executor) ":" (:port executor) "/execute")]
       (persistence/update! :trials {:state "dispatching" :executor_id (:id executor)} ["id = ?" (:id trial)])
-      (future
-        (try 
-          (http-client/post
-            url
-            {:insecure? true
-             :content-type :json
-             :accept :json 
-             :body (json/write-str data)})
-          (catch Exception e 
-            (persist-trial-failure trial e)))))
+      (http-client/post
+        url
+        {:insecure? true
+         :content-type :json
+         :accept :json 
+         :body (json/write-str data)
+         :socket-timeout 1000  
+         :conn-timeout 1000 }))
     (catch Exception e
-      (persist-trial-failure trial e))))
-
+      (logging/warn e)
+      (persistence/update! :trials {:state "pending" :executor_id nil} ["id = ?" (:id trial)])
+      false)))
 
 (defn dispatch-trials []
   (doseq [trial (to-be-dispatched-trials)]
-    (when-let [executor (executor-to-dispatch-to (:id trial))]
-      (try 
-        (dispatch trial executor)
-        (catch Exception e
-          (logging/error (util/application-trace e)))))))
+    (loop [executors (executors-to-dispatch-to (:id trial))]
+      (if-let [executor (first executors)]
+        (if-not (dispatch trial executor)
+          (recur (rest executors)))))))
 
-
-(defn executor-to-dispatch-to [trial-id]
-  (first (persistence/query 
+(defn executors-to-dispatch-to [trial-id]
+  (persistence/query 
     ["SELECT executors_with_load.*
      FROM executors_with_load,
      tasks
@@ -111,9 +92,7 @@
      AND executors_with_load.enabled = 't'
      AND (last_ping_at > (now() - interval '1 Minutes'))
      AND (executors_with_load.relative_load < 1)
-     ORDER BY executors_with_load.relative_load ASC
-     LIMIT 1" trial-id]
-    )))
+     ORDER BY executors_with_load.relative_load ASC " trial-id]))
 
 (defn to-be-dispatched-trials []
   (persistence/query 
@@ -123,8 +102,6 @@
      WHERE trials.state = 'pending'  
      ORDER BY executions.priority DESC, executions.created_at ASC, tasks.priority DESC, tasks.created_at ASC"]
     ))
-
-
 
 (defn git-url [executor repository-id]
   (route-url-for-executor 
@@ -204,7 +181,7 @@
 
 
 ;(hooke/add-hook #'gsm/submodules-for-commit #'util/logit)
-;(hooke/add-hook #'executor-to-dispatch-to #'util/logit)
+;(hooke/add-hook #'executors-to-dispatch-to #'util/logit)
 ;(hooke/add-hook #'build-dispatch-data #'util/logit)
 ;(hooke/add-hook #'route-url-for-executor #'util/logit)
 
