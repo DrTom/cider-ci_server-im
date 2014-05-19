@@ -30,7 +30,10 @@
 ;(logging-config/set-logger! :level :info)
 
 (declare 
+  git-fetch
   git-fetch-is-due?
+  git-initialize
+  git-update
   git-update-is-due?
   handle-error 
   repository-path 
@@ -171,12 +174,17 @@
 
 (defn git-fetch [repository]
   (logging/debug git-fetch [repository])
-  (cache.repositories/update repository {:state "fetching", 
-                                         :event (str (time/now) " fetching")})
   (let [repository-path (repository-path repository)
-        id (persistence.repositories/canonic-id repository)] 
-    (util/exec-successfully-or-throw ["git" "fetch" "origin" "-p" "+refs/heads/*:refs/heads/*"] 
-                                     {:watchdog (* 10 60 1000), :dir repository-path, :env {"TERM" "VT-100"}})))
+        id (persistence.repositories/canonic-id repository)
+        repository-file (clojure.java.io/file repository-path) ] 
+    (if (and (.exists repository-file) (.isDirectory repository-file))
+      (do (cache.repositories/update repository {:state "fetching", 
+                                                 :event (str (time/now) " fetching")})
+          (util/exec-successfully-or-throw ["git" "fetch" "origin" "-p" "+refs/heads/*:refs/heads/*"] 
+                                           {:watchdog (* 10 60 1000), 
+                                            :dir repository-path, 
+                                            :env {"TERM" "VT-100"}}))
+      (git-initialize repository))))
 
 (defn git-initialize [repository]
   (let [dir (repository-path repository)

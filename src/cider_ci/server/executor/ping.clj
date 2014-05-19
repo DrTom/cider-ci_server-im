@@ -39,12 +39,12 @@
                        {:insecure? true
                         :content-type :json
                         :accept :json 
+                        :socket-timeout 1000  
+                        :conn-timeout 1000 
                         :body (json/write-str {})})]
         (logging/debug "response: " response)
-        (when (<= 200 (:status response) 299)
-          (persistence/execute!
-            ["UPDATE executors SET last_ping_at = now() WHERE executors.id = ?" (:id executor)])
-          ))
+        (persistence/execute!
+          ["UPDATE executors SET last_ping_at = now() WHERE executors.id = ?" (:id executor)]))
       (catch Exception e (logging/warn e))))) 
 
 (def done (atom false))
