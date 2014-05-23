@@ -9,6 +9,7 @@
     [cider-ci.server.executor.ping :as ping]
     [cider-ci.server.executor.sync-trials :as sync-trials]
     [cider-ci.server.git :as git]
+    [cider-ci.server.http-server :as http-server]
     [cider-ci.server.persistence :as persistence]
     [cider-ci.server.persistence.settings :as settings]
     [cider-ci.server.util :as util]
@@ -27,7 +28,10 @@
 
 (defn read-config []
   (util/try-read-and-apply-config 
-    {:persistence persistence/conf} 
+    {:persistence persistence/conf
+     :http_server http-server/conf
+     :git git/conf
+     } 
     "/etc/cider-ci_server-im/conf"
     (str (root-path) "/conf")))
 

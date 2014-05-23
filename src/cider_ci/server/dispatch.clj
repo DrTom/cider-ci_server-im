@@ -4,16 +4,16 @@
 
 (ns cider-ci.server.dispatch
   (:require
+    [cider-ci.server.executor.ping]
+    [cider-ci.server.gsm :as gsm]
+    [cider-ci.server.http-server :as http-server]
+    [cider-ci.server.json]
+    [cider-ci.server.persistence :as persistence]
+    [cider-ci.server.util :as util]
     [clj-http.client :as http-client]
     [clj-logging-config.log4j :as logging-config]
     [clojure.data.json :as json]
     [clojure.tools.logging :as logging]
-    [cider-ci.server.executor.ping]
-    [cider-ci.server.gsm :as gsm]
-    [cider-ci.server.json]
-    [cider-ci.server.persistence :as persistence]
-    [cider-ci.server.persistence.settings :as settings]
-    [cider-ci.server.util :as util]
     [immutant.daemons :as id]
     [immutant.messaging :as imsg]
     [immutant.xa :as ixa]
@@ -29,6 +29,7 @@
   route-url-for-executor
   to-be-dispatched-trials 
   )
+
 
 ;(logging-config/set-logger! :level :debug)
 ;(logging-config/set-logger! :level :info)
@@ -171,11 +172,11 @@
             ORDER BY branches.updated_at DESC" execution-id])))
 
 (defn route-url-for-executor [executor path]
-  (let [config (if  (:server_overwrite executor) executor (settings/server-settings))
-        protocol (if (:server_ssl config) "https" "http")
-        host (:server_host config)
-        port (:server_port config) 
-        context (:ui_context (settings/server-settings))
+  (let [config (if  (:server_overwrite executor) executor (http-server/config))
+        protocol (if (or (:server_ssl config) (:ssl config)) "https" "http")
+        host (or (:server_host config) (:host config))
+        port (or (:server_port config) (:port config))
+        context (:tb_context (http-server/config))
         ]
     (str protocol "://" host  ":" port context path)))
 

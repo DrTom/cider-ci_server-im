@@ -17,7 +17,6 @@
     [cider-ci.server.cache.repositories :as cache.repositories]
     [cider-ci.server.persistence :as persistence]
     [cider-ci.server.persistence.repositories :as persistence.repositories]
-    [cider-ci.server.persistence.settings :as settings]
     [cider-ci.server.util :as util]
     [cider-ci.server.with :as with]
     [immutant.daemons :as id]
@@ -41,6 +40,8 @@
   update-branches 
   )
 
+(defonce conf (atom {}))
+(defn config [] @conf)
 
 ;(type (deref (:agent (@git-repositories-atom "bbe0002d-3a93-472c-9b63-e53e1b566c88"))))
 
@@ -97,7 +98,7 @@
   "Returns the absulte path to the (git-)repository.
   Performs sanity checks on the path an throws exceptions in case."
   [_repository]
-  (let [path (str (:repositories_path (settings/server-settings))
+  (let [path (str (:repositories_path @conf)
                   "/" (str (persistence.repositories/canonic-id _repository)))]
     (if (re-matches #".+\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"  path)
       path

@@ -31,28 +31,12 @@
 ; (timeout-settings)
 
 
-(defonce ^:private -server-settings (atom nil))
-
-(defn reload-server-settings []
-  (logging/info "reloading server-settings")
-  (reset! -server-settings 
-          (first (query 
-                   ["SELECT * FROM server_settings limit 1"]))))
-
-(defn server-settings []
-  (if-not @-server-settings
-    (reload-server-settings)
-    @-server-settings))
-           
-; (server-settings)
-
 (defn initialize []
   (imsg/start (imsg/as-topic "/topics/settings_updates"))
   (imsg/listen (imsg/as-topic "/topics/settings_updates")
                (fn [msg] 
                  (logging/info "received message" msg)
                  (case (:table_name msg) 
-                   "server_settings" (reload-server-settings)
                    "timeout_settings" (reload-timeout-settings)
                    (logging/warn "unhandled message: " msg)
                    ))
